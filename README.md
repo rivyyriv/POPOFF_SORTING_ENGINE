@@ -6,7 +6,6 @@ API Endpoints
 GET /users: Retrieves a list of users from the Firestore database, calculates the distance between each user and the input user, adds a distance field to each user object, and sorts the users by similarity to the input user using a weighted average approach. Returns the sorted list of users as a JSON response.
 
 Example
-GET http://localhost:3000/users?user={"latitude":<latitude-value>,"longitude":<longitude-value>}
 
 Parameters
 Single user object: A JSON object with the following fields:
