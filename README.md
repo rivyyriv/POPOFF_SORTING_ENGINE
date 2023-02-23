@@ -5,6 +5,9 @@ API Endpoints
 
 GET /users: Retrieves a list of users from the Firestore database, calculates the distance between each user and the input user, adds a distance field to each user object, and sorts the users by similarity to the input user using a weighted average approach. Returns the sorted list of users as a JSON response.
 
+Example
+GET http://localhost:3000/users?user={"latitude":<latitude-value>,"longitude":<longitude-value>}
+
 Parameters
 Single user object: A JSON object with the following fields:
 
@@ -29,8 +32,5 @@ attribute5: The user's fifth attribute.
 Installation and Usage
 To run this API, you will need to have Node.js and the following packages installed: express, @google-cloud/firestore.
 
-Clone the repository.
-Install the required packages by running npm install in the command line.
-Set up a Firestore database and initialize the db variable in index.js with the appropriate credentials.
-Run the API by running npm start in the command line. The API will be available at http://localhost:3000.
+To ensure the security of the API, express-validator is used to validate the request query parameter 'user' to ensure it contains the required fields and has the expected data types. Additionally, a middleware is added to check for a secret key in the request headers that is required to access the API. The secret key is stored as an environment variable for security.
 
