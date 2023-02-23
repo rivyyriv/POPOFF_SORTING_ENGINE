@@ -1,4 +1,5 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const { Firestore } = require('@google-cloud/firestore');
 
 const app = express();
@@ -7,8 +8,23 @@ app.use(express.json());
 // Initialize Firestore client
 const db = new Firestore();
 
+// Require a secret from env
+const SECRET = process.env.SECRET;
+
 // GET endpoint to get a list of users sorted by similarity to the input user
-app.get('/users', async (req, res) => {
+app.get('/users', [
+  check('user.latitude').isNumeric(),
+  check('user.longitude').isNumeric(),
+  check('user.interests').isArray(),
+  check('user.attribute4').isString(),
+  check('user.attribute5').isString(),
+  check('secret').equals(SECRET),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   const user = req.query.user;
 
   // Get all users from Firestore
@@ -65,5 +81,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
-
-
