@@ -9,7 +9,7 @@ app.use(express.json());
 const db = new Firestore();
 
 // Require a secret from env
-const SECRET = process.env.SECRET;
+const SECRET =  "TESTING" //process.env.SECRET;
 
 // GET endpoint to get a list of users sorted by similarity to the input user
 app.get('/users', [
