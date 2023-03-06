@@ -1,35 +1,43 @@
 User Matching API
-This API takes in two parameters: a single user object and an array of multiple user objects. It compares the list of users to the single user and creates a GET API call to get a list of sorted users most comparable to the single user using several fields to prioritize similarity.
 
-API Endpoints
+OVERVIEW
+This code provides a simple way to retrieve users sorted by similarity to a given user. This API takes in two parameters: a single user object and an array of multiple user objects. It compares the list of users to the single user and creates a GET API call to get a list of sorted users most comparable to the single user using several fields to prioritize similarity.
 
-GET /users: Retrieves a list of users from the Firestore database, calculates the distance between each user and the input user, adds a distance field to each user object, and sorts the users by similarity to the input user using a weighted average approach. Returns the sorted list of users as a JSON response.
+PARAMS
+The API has a single endpoint GET /users that returns a list of users sorted by similarity to the input user.
+Note that all of these parameters are optional, and the server will still return a list of users even if none of these parameters are provided. However, the more parameters that are provided, the more accurate the similarity and distance calculations will be, and the more relevant the results will be to the input user.
 
-Example
+In the /users endpoint of this server, the similarity score between each user and the input user is calculated based on how many of their attributes match. However, the first attribute (attribute1) is weighted more heavily than the other attributes. Specifically, if the attribute1 of a user matches the attribute1 of the input user, that user's similarity score is increased by 6, whereas a match on any of the other attributes (attribute2 through attribute5) only increases the similarity score by 2 to 5 points.
 
-Parameters
-Single user object: A JSON object with the following fields:
+This weighting system is based on the assumption that attribute1 is more important or relevant than the other attributes, and should therefore carry more weight in the similarity calculation. Of course, this assumption may not always be true, and the weighting system could be adjusted to reflect the importance of different attributes in different contexts.
 
-name: A string representing the user's name.
-location: A string representing the user's geographical location.
-latitude: A float representing the user's latitude coordinate.
-longitude: A float representing the user's longitude coordinate.
-elo: An integer representing the user's ELO rating.
-interests: An array of strings representing the user's interests.
-attribute4: A string representing the user's fourth attribute.
-attribute5: A string representing the user's fifth attribute.
-Array of multiple user objects: A JSON array of objects with the same fields as the single user object.
+If the latitude and longitude properties are present, the server calculates the distance (in minutes) between each user and the input user using the Haversine formula.
 
-Fields Used for Comparison
-The following fields are used to prioritize similarity between users:
+USER OBJECT OPTIONS
 
-distance: The distance between the user and the input user, in minutes.
-elo: The user's ELO rating.
-interests: The user's interests.
-attribute4: The user's fourth attribute.
-attribute5: The user's fifth attribute.
-Installation and Usage
-To run this API, you will need to have Node.js and the following packages installed: express, @google-cloud/firestore.
+1. user.attribute1: a string representing an attribute of the user
 
-To ensure the security of the API, express-validator is used to validate the request query parameter 'user' to ensure it contains the required fields and has the expected data types. Additionally, a middleware is added to check for a secret key in the request headers that is required to access the API. The secret key is stored as an environment variable for security.
+2. user.attribute2: a string representing an attribute of the user
+
+3. user.attribute3: a string representing an attribute of the user
+
+4. user.attribute4: a string representing an attribute of the user
+
+5. user.attribute5: a string representing an attribute of the user
+
+6. user.latitude: a numeric value representing the latitude of the user's location 
+
+7. user.longitude: a numeric value representing the longitude of the user's location
+
+8. distance: a numeric value representing the maximum distance (in minutes) from the input user to include in the results
+secret: a string representing a secret key that will be used to authenticate requests to the API
+
+The API endpoint will return a JSON object containing a sorted list of users, with the most similar users first. Each user object will include properties id, latitude, longitude, attribute1, attribute2, attribute3, attribute4, attribute5, similarity, and, if present, distance.
+
+Documentation:
+
+The app.js file contains the following:
+
+
+
 
