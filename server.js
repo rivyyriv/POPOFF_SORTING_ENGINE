@@ -13,11 +13,14 @@ const SECRET = process.env.SECRET;
 
 // GET endpoint to get a list of users sorted by similarity to the input user
 app.get('/users', [
-  check('user.latitude').isNumeric(),
-  check('user.longitude').isNumeric(),
-  check('user.interests').isArray(),
-  check('user.attribute4').isString(),
-  check('user.attribute5').isString(),
+  check('user.latitude').isNumeric().optional(),
+  check('user.longitude').isNumeric().optional(),
+  check('user.attribute1').isString().optional(),
+  check('user.attribute2').isString().optional(),
+  check('user.attribute3').isString().optional(),
+  check('user.attribute4').isString().optional(),
+  check('user.attribute5').isString().optional(),
+  check('distance').isNumeric().optional(),
   check('secret').equals(SECRET),
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -25,7 +28,7 @@ app.get('/users', [
     return res.status(422).json({ errors: errors.array() });
   }
 
-  const user = req.query.user;
+  const user = req.query.user || {};
 
   // Get all users from Firestore
   const snapshot = await db.collection('users').get();
@@ -33,28 +36,34 @@ app.get('/users', [
   // Sort the users by similarity to the input user
   const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   users.forEach(a => {
-    const distance = getDistance(user.latitude, user.longitude, a.latitude, a.longitude);
-    a.distance = distance;
+    if (user.latitude && user.longitude) {
+      const distance = getDistance(user.latitude, user.longitude, a.latitude, a.longitude);
+      a.distance = distance;
+    }
+    let similarity = 0;
+    if (user.attribute1 && a.attribute1 && user.attribute1 === a.attribute1) {
+      similarity += 6;
+    }
+    if (user.attribute2 && a.attribute2 && user.attribute2 === a.attribute2) {
+      similarity += 5;
+    }
+    if (user.attribute3 && a.attribute3 && user.attribute3 === a.attribute3) {
+      similarity += 4;
+    }
+    if (user.attribute4 && a.attribute4 && user.attribute4 === a.attribute4) {
+      similarity += 3;
+    }
+    if (user.attribute5 && a.attribute5 && user.attribute5 === a.attribute5) {
+      similarity += 2;
+    }
+    a.similarity = similarity;
   });
-  users.sort((a, b) => {
-    const weightings = [
-      { key: 'distance', weight: 6 },
-      { key: 'elo', weight: 5 },
-      { key: 'interests', weight: 4 },
-      { key: 'attribute4', weight: 3 },
-      { key: 'attribute5', weight: 2 },
-    ];
+  users.sort((a, b) => b.similarity - a.similarity);
 
-    const similarityA = weightings.reduce((similarity, { key, weight }) => {
-      return similarity + (a[key] === user[key] ? weight : 0);
-    }, 0);
-
-    const similarityB = weightings.reduce((similarity, { key, weight }) => {
-      return similarity + (b[key] === user[key] ? weight : 0);
-    }, 0);
-
-    return similarityB - similarityA;
-  });
+  if (user.latitude && user.longitude && req.query.distance) {
+    const maxDistance = req.query.distance;
+    users = users.filter(a => a.distance <= maxDistance);
+  }
 
   res.json(users);
 });
